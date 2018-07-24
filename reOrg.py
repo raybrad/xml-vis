@@ -2,10 +2,9 @@ import lxml.etree as ET
 import argparse
 import re
 import os
-import xmltodict
-from pprint import pprint
-from itertools import tee
 import copy
+import json
+from pprint import pprint
 
 def transform(args):
     tree = ET.parse(args.input_file)
@@ -15,7 +14,14 @@ def transform(args):
     for s in sections:
         jobxml[s]=getSection(root,s)
     # pprint(jobxml)    
-    genTree(jobxml)
+    inspectTree=genInspectTree(jobxml)
+    pprint(inspectTree)                        
+    outDict=fixup(inspectTree)
+    jsonFile=json.dumps(outDict, indent=4)
+    outputfile = open("flare.json", 'w')
+    outputfile.write(jsonFile)
+    outputfile.close()   
+    
     # fo = open(args.output_file,"w")
     # fo.write(output)
     # fo.close()
@@ -32,9 +38,9 @@ def getSection(root,section):
         output=recursive_dict(anchor)
         element={output[0]:output[1]}
         if tag not in secInfos.keys():
-            secInfos[tag]=[element]
+            secInfos[tag]=dict(element)
         else:
-            secInfos[tag].append(element)
+            secInfos[tag].update(element)
     return secInfos
 
 def nested_get(key, what):
@@ -52,17 +58,43 @@ def nested_get(key, what):
                 for result in nested_get(key, v):
                     yield result
 
-def genTree(jobxml):
+def genInspectTree(jobxml):
     """build inspection based expaneded tree"""
     inspectTree=copy.deepcopy(jobxml['section_inspect']) #use deep copy,otherwise generator will work on inspectTree/jobxml too
     for inspectType,inspects in jobxml['section_inspect'].items():
-        for i,inspect in enumerate(inspects):
-            for inspectName, inspectInfo in inspect.items():
-                for k, v in inspectInfo.items():
-                    expand=list(nested_get(v,jobxml))
-                    if expand:
-                        inspectTree[inspectType][i][inspectName][k]={v:expand}
-    pprint(inspectTree)                        
+        for inspectName, inspectInfo in inspects.items():
+            for k, v in inspectInfo.items():
+                expand=list(nested_get(v,jobxml))
+                if expand:
+                    inspectTree[inspectType][inspectName][k]={v:expand[0]}
+    return inspectTree
+
+def fixup(what):
+    if isinstance(what, str):
+        return [dict(name=what)]
+    elif isinstance(what, list):
+        return [dict(name=i,children=fixup(x)) for i,x in enumerate(what)]
+
+    elif isinstance(what, dict):
+        if len(what)==1:
+            # return dict(name=what.items()[0][0], children=fixup(what.items()[0][1]))
+            for x, y in sorted(what.items()):
+                if isinstance(y,dict) and len(y)==1:
+                    return dict(name=x, children=[fixup(y)])
+                else:
+                    return dict(name=x, children=fixup(y))
+        else:
+            # return [dict(name=x, children=[fixup(y)]) if isinstance(y,dict) else dict(name=x, children=fixup(y)) for x, y in sorted(what.items())]
+            dictList=list()
+            for x, y in sorted(what.items()):
+                if isinstance(y,dict) and len(y)==1:
+                    dictList.append(dict(name=x, children=[fixup(y)]))
+                else:
+                    dictList.append(dict(name=x, children=fixup(y)))
+            return dictList
+
+    else:
+        return None
 
 def parse_options():
     """parse command option"""
