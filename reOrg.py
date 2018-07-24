@@ -4,6 +4,8 @@ import re
 import os
 import xmltodict
 from pprint import pprint
+from itertools import tee
+import copy
 
 def transform(args):
     tree = ET.parse(args.input_file)
@@ -12,7 +14,7 @@ def transform(args):
     jobxml=dict()
     for s in sections:
         jobxml[s]=getSection(root,s)
-    pprint(jobxml)    
+    # pprint(jobxml)    
     genTree(jobxml)
     # fo = open(args.output_file,"w")
     # fo.write(output)
@@ -35,23 +37,6 @@ def getSection(root,section):
             secInfos[tag].append(element)
     return secInfos
 
-# def nested_get(key, what):
-#     if isinstance(what, unicode):
-#         return
-#     else:
-#         for k, v in what.items():
-#             # print 'key',k
-#             # print 'value',v
-#             if k == key:
-#                 yield v
-#             elif isinstance(v, dict):
-#                 for result in nested_get(key, v):
-#                     yield result
-#             elif isinstance(v, list):
-#                 for d in v:
-#                     for result in nested_get(key, d):
-#                         yield result
-#
 def nested_get(key, what):
     if isinstance(what, unicode):
         return 
@@ -67,55 +52,18 @@ def nested_get(key, what):
                 for result in nested_get(key, v):
                     yield result
 
-# def nested_get(key, what):
-#     if isinstance(what, unicode):
-#         print 'unicode'
-#         return 
-#     elif isinstance(what, list):
-#         print 'list',what
-#         for d in what:
-#             return nested_get(key,d)
-#     elif isinstance(what, dict):
-#         print 'dict',what
-#         for k, v in what.items():
-#             print 'item',k
-#             if k == key:
-#                 print 'find',k
-#                 return v
-#             else:
-#                 return nested_get(key,v)
-
 def genTree(jobxml):
     """build inspection based expaneded tree"""
-    inspectTree=jobxml['section_inspect']
-    # result=nested_get("Det_ADI_Logic_NC",jobxml['section_detector'])
-    # result=nested_get("CT_Combine_ADI_NC",jobxml)
-    # print(result)
-    # print(result)
-    # exit()
+    inspectTree=copy.deepcopy(jobxml['section_inspect']) #use deep copy,otherwise generator will work on inspectTree/jobxml too
     for inspectType,inspects in jobxml['section_inspect'].items():
         for i,inspect in enumerate(inspects):
             for inspectName, inspectInfo in inspect.items():
                 for k, v in inspectInfo.items():
-                    # # print k,v
-                    # # print(type(list(expand)))
-                    # pprint(expand)
-                    # print '------',len(list(expand))
-                    # pprint(list(expand))
-                    if list(nested_get(v,jobxml)):
-                    #     print 'ok', k,v
-                    #     pprint(list(expand))
-                        inspectTree[inspectType][i][inspectName][k]={v:list(nested_get(v,jobxml))}
-    # pprint(inspectTree)                        
-#  'section_inspect': {'inspect1': [{'Inspect_Combine_ADI_Logic_NC': {'contour1': 'CT_Combine_ADI_NC',
-#                                                                     'contourcrop': {'deflayer': '161',
-#                                                                                     'layer': 'CT_Combine_ADI_NC',
-#                                                                                     'range': '150'},
-#                                                                     'detgroup': 'Det_ADI_Logic_NC',
-#                                                                     'geometry1': 'Geo_logic',
-#                                                                     'patternmatch': {'layer': 'L_Final_ADItarget',
-#                                                                                      'range': '150'},
-#                                                                     'target1': 'L_Final_ADItarget'}},
+                    expand=list(nested_get(v,jobxml))
+                    if expand:
+                        inspectTree[inspectType][i][inspectName][k]={v:expand}
+    pprint(inspectTree)                        
+
 def parse_options():
     """parse command option"""
     parser = argparse.ArgumentParser(
