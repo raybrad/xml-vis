@@ -80,14 +80,11 @@ def genInspectTree(jobxml):
     # inspectTree=copy.deepcopy(jobxml['section_inspect']) #use deep copy,otherwise generator will work on inspectTree/jobxml too
     inspectTree=expandTree(jobxml['section_inspect'],woInspectXML)    
     # for k1,v1 in expand[0].items():
-    #     if k1 == 'operation':
-    #         match1=re.search("((\w+)[+-*!^])+(\w+)",v1)
-    #         match2=re.search("${(\w+)}",v1)
     #         if match1:
     #           #<operation>SIZING(L_cafill,${Upsizefill},"O")</operation>
     #           expand2=list(nested_get_key(v1,jobxml))
 
-    # manul method 
+    # manual method 
     # for inspectType,inspects in jobxml['section_inspect'].items():
     #     for inspectName, inspectInfo in inspects.items():
     #         for k, v in inspectInfo.items():
@@ -103,6 +100,19 @@ def expandTree(inDict,jobxml):
         for k,v in inDict.items():
             if isinstance(v,str):
                 v=v.strip('${}')
+                if k == 'operation':
+                    # opList=re.split('-|\+|\*|\^',v)
+                    opList=re.split('\+|-|\*|^|\(|\)|{|}|\s+|,',v)
+                    if len(opList)>1:
+                        tmpDict=dict()
+                        for op in set(opList):
+                            expand=list(nested_get_key(op,jobxml))
+                            if expand:
+                                tmpDict.update({op:expand[0]})
+                        if tmpDict:
+                            newDict[k]={v:tmpDict}
+                        return newDict
+                                
             expand=list(nested_get_key(v,jobxml))
             if expand:
                 # print 'expand',expand
