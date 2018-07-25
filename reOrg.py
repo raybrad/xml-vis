@@ -43,31 +43,77 @@ def getSection(root,section):
             secInfos[tag].update(element)
     return secInfos
 
-def nested_get(key, what):
+def nested_get_value(value, what):
     if isinstance(what, unicode):
         return 
     elif isinstance(what, list):
         for d in what:
-            for result in nested_get(key, d):
+            for result in nested_get_value(value, d):
+                yield result
+    elif isinstance(what, dict):
+        for k, v in what.items():
+            if v == value:
+                yield k
+            else:
+                for result in nested_get_value(value, v):
+                    yield result
+
+def nested_get_key(key, what):
+    if isinstance(what, unicode):
+        return 
+    elif isinstance(what, list):
+        for d in what:
+            for result in nested_get_key(key, d):
                 yield result
     elif isinstance(what, dict):
         for k, v in what.items():
             if k == key:
                 yield v
             else:
-                for result in nested_get(key, v):
+                for result in nested_get_key(key, v):
                     yield result
 
 def genInspectTree(jobxml):
     """build inspection based expaneded tree"""
-    inspectTree=copy.deepcopy(jobxml['section_inspect']) #use deep copy,otherwise generator will work on inspectTree/jobxml too
-    for inspectType,inspects in jobxml['section_inspect'].items():
-        for inspectName, inspectInfo in inspects.items():
-            for k, v in inspectInfo.items():
-                expand=list(nested_get(v,jobxml))
-                if expand:
-                    inspectTree[inspectType][inspectName][k]={v:expand[0]}
+    woInspectXML=copy.deepcopy(jobxml)
+    woInspectXML.pop('section_inspect')
+    # inspectTree=copy.deepcopy(jobxml['section_inspect']) #use deep copy,otherwise generator will work on inspectTree/jobxml too
+    inspectTree=expandTree(jobxml['section_inspect'],woInspectXML)    
+    # for k1,v1 in expand[0].items():
+    #     if k1 == 'operation':
+    #         match1=re.search("((\w+)[+-*!^])+(\w+)",v1)
+    #         match2=re.search("${(\w+)}",v1)
+    #         if match1:
+    #           #<operation>SIZING(L_cafill,${Upsizefill},"O")</operation>
+    #           expand2=list(nested_get_key(v1,jobxml))
+
+    # manul method 
+    # for inspectType,inspects in jobxml['section_inspect'].items():
+    #     for inspectName, inspectInfo in inspects.items():
+    #         for k, v in inspectInfo.items():
+    #             v=v.strip('${}')
+    #             expand=list(nested_get_key(v,jobxml))
+    #             if expand:
+    #                 inspectTree[inspectType][inspectName][k]={v:expand[0]}
     return inspectTree
+
+def expandTree(inDict,jobxml):
+    newDict=copy.deepcopy(inDict)
+    if isinstance(inDict,dict):
+        for k,v in inDict.items():
+            if isinstance(v,str):
+                v=v.strip('${}')
+            expand=list(nested_get_key(v,jobxml))
+            if expand:
+                # print 'expand',expand
+                newDict[k]={v:expandTree(expand[0],jobxml)}
+            else:
+                newDict[k]=expandTree(v,jobxml)
+    return newDict            
+
+def genLayerTree(jobxml):
+    """build layerTree"""
+    return
 
 def fixup(what):
     if isinstance(what, str):
@@ -77,14 +123,12 @@ def fixup(what):
 
     elif isinstance(what, dict):
         if len(what)==1:
-            # return dict(name=what.items()[0][0], children=fixup(what.items()[0][1]))
             for x, y in sorted(what.items()):
                 if isinstance(y,dict) and len(y)==1:
                     return dict(name=x, children=[fixup(y)])
                 else:
                     return dict(name=x, children=fixup(y))
         else:
-            # return [dict(name=x, children=[fixup(y)]) if isinstance(y,dict) else dict(name=x, children=fixup(y)) for x, y in sorted(what.items())]
             dictList=list()
             for x, y in sorted(what.items()):
                 if isinstance(y,dict) and len(y)==1:
