@@ -24,8 +24,15 @@
 
 </style>
 <header>
-    <button onclick="expandAll()">Expand All</button>
-    <button onclick="collapseAll()">Collapse All</button>
+    <div id='opAll'>
+        <button onclick="expandAll()">Expand All</button>
+        <button onclick="collapseAll()">Collapse All</button>
+    </div>        
+    <div id='opRow'>
+        Row:<input type="text" id="myRow" value="0">
+        <button onclick="expand1R()">Expand 1R</button>
+        <button onclick="collapse1R()">Collapse 1R</button>
+    </div>        
 </header>
 <body>
 <!-- <script src="//d3js.org/d3.v3.min.js"></script> -->
@@ -62,22 +69,41 @@ d3.json("flare.json", function(error, test) {
   root.x0 = height / 2;
   root.y0 = 0;
 
-  function collapse(d) {
-    if (d.children) {
-      d._children = d.children;
-      d._children.forEach(collapse);
-      d.children = null;
-    }
-  }
-
+  // function collapse(d) {
+  //   if (d.children) {
+  //     d._children = d.children;
+  //     d._children.forEach(collapse);
+  //     d.children = null;
+  //   }
+  // }
+  //
   root.children.forEach(collapse);
+  // collapseAll();
+  // expandAll();
   update(root);
 });
 
 d3.select(self.frameElement).style("height", "800px");
 
 function update(source) {
+  
+  var duration = d3.event && d3.event.altKey ? 5000 : 500;
+  // compute the new height
+  var levelWidth = [1];
+  var childCount = function(level, n) {
+    if(n.children && n.children.length > 0) {
+      if(levelWidth.length <= level + 1) levelWidth.push(0);
 
+      levelWidth[level+1] += n.children.length;
+      n.children.forEach(function(d) {
+        childCount(level + 1, d);
+      });
+    }
+  };
+  childCount(0, root);  
+  var newHeight = d3.max(levelWidth) * 50; // 20 pixels per line  
+  tree = tree.size([newHeight, width]);
+  
   // Compute the new tree layout.
   var nodes = tree.nodes(root).reverse(),
       links = tree.links(nodes);
@@ -116,7 +142,7 @@ function update(source) {
       .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
   nodeUpdate.select("text")
-      .style("fill-opacity", 1);
+      .style("fill-opacity", 1.0);
 
   // Transition exiting nodes to the parent's new position.
   var nodeExit = node.exit().transition()
@@ -130,7 +156,7 @@ function update(source) {
   nodeExit.select("text")
       .style("fill-opacity", 1e-6);
 
-  // Update the links…
+  // Update the links
   var link = svg.selectAll("path.link")
       .data(links, function(d) { return d.target.id; });
 
@@ -161,6 +187,22 @@ function update(source) {
     d.x0 = d.x;
     d.y0 = d.y;
   });
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[1];
+      });
+      d3.select("svg").attr("height", max + 250)
+      console.log(max)
+    }, 800)
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[0];
+      });
+      d3.select("svg").attr("width", max + 250)
+      console.log(max)
+    }, 800)
 }
 
 // Toggle children on click.
@@ -200,6 +242,33 @@ function expandAll(){
 function collapseAll(){
     root.children.forEach(collapse);
     collapse(root);
+    update(root);
+}
+
+function expand1C(d){   
+    var children = (d.children)?d.children:d._children;
+    if (d._children) {        
+        d.children = d._children;
+        d._children = null;       
+    }
+}
+
+function collapse1C(d) {
+  if (d.children) {
+      d._children = d.children;
+      d.children = null;
+    }
+}
+
+function expand1R(){   
+    var myRow = d3.select("#myRow").property("value");
+    expand(root.children[myRow]); 
+    update(root);
+}
+
+function collapse1R(){   
+    var myRow = d3.select("#myRow").property("value");
+    collapse(root.children[myRow]); 
     update(root);
 }
 

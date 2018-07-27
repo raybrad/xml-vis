@@ -77,6 +77,23 @@ d3.json("flare.json", function(error, test) {
 d3.select(self.frameElement).style("height", "800px");
 
 function update(source) {
+  
+  var duration = d3.event && d3.event.altKey ? 5000 : 500;
+  // compute the new height
+  var levelWidth = [1];
+  var childCount = function(level, n) {
+    if(n.children && n.children.length > 0) {
+      if(levelWidth.length <= level + 1) levelWidth.push(0);
+
+      levelWidth[level+1] += n.children.length;
+      n.children.forEach(function(d) {
+        childCount(level + 1, d);
+      });
+    }
+  };
+  childCount(0, root);  
+  var newWidth = d3.max(levelWidth) * 50; // 20 pixels per line  
+  tree = tree.size([newWidth,height]);
 
   // Compute the new tree layout.
   var nodes = tree.nodes(root).reverse(),
@@ -161,6 +178,21 @@ function update(source) {
     d.x0 = d.x;
     d.y0 = d.y;
   });
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[1];
+      });
+      d3.select("svg").attr("height", max + 100)
+      console.log(max)
+    }, 800)
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[0];
+      });
+      d3.select("svg").attr("width", max + 100)
+      console.log(max)
+    }, 800)
 }
 
 // Toggle children on click.
