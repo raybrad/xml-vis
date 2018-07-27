@@ -1,408 +1,325 @@
-<LMCplus script_version="E6.0">
-    <installation>/gpfs/software/tachyon_flex_E6.0/rc8/LSF/app/E6.0rc8/</installation>
-    <jobxml>
-        <item>
-            <name>descr</name>
-            <value>New job</value>
-        </item>
-        <item>
-            <name>jobtype</name>
-            <value>lmc+</value>
-        </item>
-        <item>
-            <name>options</name>
-            <value>patchboxgds=200:200,procsPerGB=0.04,refinecurvature=170,logginglevel=5000,check_job_schema=0,patch=0-299</value>
-        </item>
-    </jobxml>
-    <jobparamxml>
-        <item>
-            <name>binary</name>
-            <value/>
-        </item>
-        <item>
-            <name>childmodelroot</name>
-            <value>/gpfs/PEG/LMC/SHARED/ChildModel</value>
-        </item>
-        <item>
-            <name>gdscachedir</name>
-            <value>/gpfs/PEG/LMC/SHARED/CACHE</value>
-        </item>
-        <item>
-            <name>rthook</name>
-            <value/>
-        </item>
-    </jobparamxml>
-    <crmssubmitconfigxml>
-        <lsf>
-            <preproc>
-                <queue>benchmark</queue>
-                <applicationprofile>hostonly</applicationprofile>
-            </preproc>
-            <job>
-                <queue>benchmark</queue>
-                <slots>1</slots>
-                <applicationprofile>bench1</applicationprofile>
-            </job>
-        </lsf>
-    </crmssubmitconfigxml>
-    <section_variable>
-        <var name="Upsizefill">
-            <type>int</type>
-            <value>30</value>
-        </var>
-        <var name="SlotEndTipDistance">
-            <type>double</type>
-            <value>25.1</value>
-        </var>
-        <var name="GDS_ORIG">
-            <type>string</type>
-            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_jiaomodified_forLMCplus_SamsungL10M1_testing.oas</value>
-        </var>
-        <var name="GDS_M1_OPC">
-            <type>string</type>
-            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_opc_A_v2.dat</value>
-        </var>
-        <var name="GDS_J1_OPC">
-            <type>string</type>
-            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_opc_C.dat</value>
-        </var>
-        <var name="GDS_I1_OPC">
-            <type>string</type>
-            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_opc_B.dat</value>
-        </var>
-        <global_setting>
-            <iw>2300:2300:2600:2600</iw>
-        </global_setting>
-        <external_file>
-            <file>/gpfs/software/tachyon_flex_E6.0/rc8/LSF/app/E6.0rc8/data/lmc/recipe_template.xml</file>
-            <file>/gpfs/software/tachyon_flex_E6.0/rc8/LSF/app/E6.0rc8/data/lmc/detector_template.xml</file>
-        </external_file>
-    </section_variable>
-    <section_model label="Model">
-        <model name="model_i1">
-            <file>/gpfs/PEG/LMC/SHARED/MODEL/MOD-3925/IMEC_10nm_M1_aei5_MPT_AEI/sp1</file>
-        </model>
-    </section_model>
-    <section_pwcondition label="Condition">
-        <pwcondition name="pwc_nc">
-            <cond>
-                <bias>0</bias>
-                <delta_defocus>0</delta_defocus>
-                <delta_dose>0</delta_dose>
-            </cond>
-        </pwcondition>
-        <pwcondition name="pwc1">
-            <cond>
-                <bias>0</bias>
-                <delta_defocus>0</delta_defocus>
-                <delta_dose>0.1</delta_dose>
-            </cond>
-        </pwcondition>
-    </section_pwcondition>
-    <section_geometry label="Geometry">
-        <geometry name="Geo_logic">
-            <inner_corner_distance>80</inner_corner_distance>
-            <outer_corner_distance>70</outer_corner_distance>
-            <jog_size>20</jog_size>
-            <jog_distance>80</jog_distance>
-            <line_end_max_width>80</line_end_max_width>
-            <line_end_min_length>60</line_end_min_length>
-            <line_end_distance>60</line_end_distance>
-            <line_end_jog_distance>10</line_end_jog_distance>
-            <slot_end_max_width>80</slot_end_max_width>
-            <slot_end_min_length>10</slot_end_min_length>
-            <slot_end_distance>60</slot_end_distance>
-        </geometry>
-    </section_geometry>
-    <section_layer label="Layer">
-        <layer_in name="L_M1_OPC">
-            <file>${GDS_M1_OPC}</file>
-            <layerdatatype>91:10</layerdatatype>
-        </layer_in>
-        <layer_in name="L_M1_FILL">
-            <file>${GDS_M1_OPC}</file>
-            <layerdatatype>91:4</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_M1_SRAF">
-            <file>${GDS_M1_OPC}</file>
-            <layerdatatype>91:12</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_M1_SRIF">
-            <file>${GDS_M1_OPC}</file>
-            <layerdatatype>91:13</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_operation name="L_M1_PostRET">
-            <operation>L_M1_OPC+L_M1_FILL+L_M1_SRAF-L_M1_SRIF</operation>
-        </layer_operation>
-        <layer_in name="L_M1_ADItarget">
-            <file>${GDS_M1_OPC}</file>
-            <layerdatatype>0:1</layerdatatype>
-        </layer_in>
-        <layer_in name="L_I1_ADItarget">
-            <file>${GDS_I1_OPC}</file>
-            <layerdatatype>0:2</layerdatatype>
-        </layer_in>
-        <layer_in name="L_I1_SRIF">
-            <file>${GDS_I1_OPC}</file>
-            <layerdatatype>92:13</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_I1_SRAF">
-            <file>${GDS_I1_OPC}</file>
-            <layerdatatype>92:12</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_I1_FILL">
-            <file>${GDS_I1_OPC}</file>
-            <layerdatatype>92:4</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_I1_OPC">
-            <file>${GDS_I1_OPC}</file>
-            <layerdatatype>92:10</layerdatatype>
-        </layer_in>
-        <layer_operation name="L_I1_PostRET">
-            <operation>L_I1_OPC+L_I1_FILL+L_I1_SRAF-L_I1_SRIF</operation>
-        </layer_operation>
-        <layer_in name="L_J1_OPC">
-            <file>${GDS_J1_OPC}</file>
-            <layerdatatype>93:10</layerdatatype>
-        </layer_in>
-        <layer_in name="L_J1_FILL">
-            <file>${GDS_J1_OPC}</file>
-            <layerdatatype>93:4</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_J1_SRAF">
-            <file>${GDS_J1_OPC}</file>
-            <layerdatatype>93:12</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_in name="L_J1_SRIF">
-            <file>${GDS_J1_OPC}</file>
-            <layerdatatype>93:13</layerdatatype>
-            <options>
-                <optional>true</optional>
-            </options>
-        </layer_in>
-        <layer_operation name="L_J1_PostRET">
-            <operation>L_J1_OPC+L_J1_FILL+L_J1_SRAF-L_J1_SRIF</operation>
-        </layer_operation>
-        <layer_in name="L_J1_ADItarget">
-            <file>${GDS_J1_OPC}</file>
-            <layerdatatype>0:3</layerdatatype>
-        </layer_in>
-        <layer_simulate name="CT_M1_ADI_NC">
-            <model>model_i1</model>
-            <layermap>
-                <Attenuator>L_M1_PostRET</Attenuator>
-                <aei_average>L_M1_ADItarget</aei_average>
-            </layermap>
-            <pwcondition>pwc_nc</pwcondition>
-            <options>
-                <mode>ADI</mode>
-                <refinecontour>0.1</refinecontour>
-                <refinecurvature>170</refinecurvature>
-            </options>
-        </layer_simulate>
-        <layer_simulate name="CT_I1_ADI_NC">
-            <model>model_i1</model>
-            <layermap>
-                <Attenuator>L_I1_PostRET</Attenuator>
-                <aei_average>L_I1_ADItarget</aei_average>
-            </layermap>
-            <pwcondition>pwc_nc</pwcondition>
-            <options>
-                <mode>ADI</mode>
-                <refinecontour>0.1</refinecontour>
-                <refinecurvature>170</refinecurvature>
-            </options>
-        </layer_simulate>
-        <layer_simulate name="CT_J1_ADI_NC">
-            <model>model_i1</model>
-            <layermap>
-                <Attenuator>L_J1_PostRET</Attenuator>
-                <aei_average>L_J1_ADItarget</aei_average>
-            </layermap>
-            <pwcondition>pwc_nc</pwcondition>
-            <options>
-                <mode>ADI</mode>
-                <refinecontour>0.1</refinecontour>
-                <refinecurvature>170</refinecurvature>
-            </options>
-        </layer_simulate>
-        <layer_operation name="L_Final_ADItarget">
-            <operation>SIZING(L_I1_ADItarget+SIZING(L_M1_ADItarget,${Upsizefill},"O"))*ROUNDING(L_J1_ADItarget,${SlotEndTipDistance})</operation>
-        </layer_operation>
-        <layer_operation name="CT_Combine_ADI_NC">
-            <operation>CT_M1_ADI_NC+CT_I1_ADI_NC+CT_J1_ADI_NC</operation>
-        </layer_operation>
-        <layer_operation name="CT_Combine_ADI_PW1">
-            <operation>CT_M1_ADI_PW1+CT_I1_ADI_PW1+CT_J1_ADI_PW1</operation>
-        </layer_operation>
-    </section_layer>
-    <section_detector label="Detector">
-        <detgroup name="Det_ADI_Logic_NC">
-            <det1 name="Error_NECK">
-                <type>_NECK</type>
-                <deflayer>3</deflayer>
-                <PositiveTolerance>0.01</PositiveTolerance>
-                <PositiveTolerance2>37.5</PositiveTolerance2>
-            </det1>
-            <det1 name="Error_BRIDGE">
-                <type>_BRIDGE</type>
-                <deflayer>9</deflayer>
-                <LE1>-1</LE1>
-                <LE2LE>-1</LE2LE>
-                <PositiveTolerance>0.01</PositiveTolerance>
-                <PositiveTolerance2>44</PositiveTolerance2>
-            </det1>
-        </detgroup>
-        <detgroup name="Det_ADI_Logic_PW1">
-            <det1 name="Error_NECK">
-                <type>_NECK</type>
-                <deflayer>3</deflayer>
-                <PositiveTolerance>1.01</PositiveTolerance>
-                <PositiveTolerance2>37.5</PositiveTolerance2>
-            </det1>
-            <det1 name="Error_BRIDGE">
-                <type>_BRIDGE</type>
-                <deflayer>9</deflayer>
-                <LE1>-1</LE1>
-                <LE2LE>-1</LE2LE>
-                <PositiveTolerance>1.01</PositiveTolerance>
-                <PositiveTolerance2>44</PositiveTolerance2>
-            </det1>
-        </detgroup>
-    </section_detector>
-    <section_inspect label="Inspection">
-        <inspect1 name="Inspect_Combine_ADI_Logic_NC">
-            <target1>L_Final_ADItarget</target1>
-            <contour1>CT_Combine_ADI_NC</contour1>
-            <geometry1>Geo_logic</geometry1>
-            <detgroup>Det_ADI_Logic_NC</detgroup>
-            <patternmatch>
-                <layer>L_Final_ADItarget</layer>
-                <range>150</range>
-            </patternmatch>
-            <contourcrop>
-                <layer>CT_Combine_ADI_NC</layer>
-                <range>150</range>
-                <deflayer>161</deflayer>
-            </contourcrop>
-        </inspect1>
-        <inspect1 name="Inspect_Combine_ADI_Logic_PW1">
-            <target1>L_Final_ADItarget</target1>
-            <contour1>CT_Combine_ADI_NC</contour1>
-            <geometry1>Geo_logic</geometry1>
-            <detgroup>Det_ADI_Logic_PW1</detgroup>
-            <patternmatch>
-                <layer>L_Final_ADItarget</layer>
-                <range>150</range>
-            </patternmatch>
-            <contourcrop>
-                <layer>CT_Combine_ADI_NC</layer>
-                <range>150</range>
-                <deflayer>161</deflayer>
-            </contourcrop>
-        </inspect1>
-        <inspect1 name="Inspect_Combine_ADI_Logic_PW2">
-            <target1>L_Final_ADItarget</target1>
-            <contour1>CT_M1_ADI_NC</contour1>
-            <geometry1>Geo_logic</geometry1>
-            <detgroup>Det_ADI_Logic_PW1</detgroup>
-            <patternmatch>
-                <layer>L_Final_ADItarget</layer>
-                <range>150</range>
-            </patternmatch>
-            <contourcrop>
-                <layer>CT_M1_ADI_NC</layer>
-                <range>150</range>
-                <deflayer>161</deflayer>
-            </contourcrop>
-        </inspect1>
-    </section_inspect>
-    <section_advanced label="Advanced">
-        <recipe name="Recipe_A">
-          <recipe_template>NILS</recipe_template>
-          <input>
-            <layer name="dissected_target">target</layer>
-            <layer name="model_output">contour</layer>
-            <layer name="CA">IR</layer>
-          </input>
-          <param name="nils_param">
-            <CORRECTION_GRID>0.1</CORRECTION_GRID>
-            <queryRange>400</queryRange>
-            <merge>1</merge>
-            <checkOption>0</checkOption>
-            <checkstep>2</checkstep>
-            <polarity>2</polarity>
-            <layer_IR>1</layer_IR>
-            <targetLayer>dissected_target</targetLayer>
-            <modelOutput>model_output</modelOutput>
-            <caLayer>CA</caLayer>
-          </param>
-          <param name="nils_geo_param">
-            <line_end_max_width>120</line_end_max_width>
-            <line_end_min_length>40</line_end_min_length>
-            <line_end_distance>40</line_end_distance>
-            <slot_end_max_width>120</slot_end_max_width>
-            <slot_end_min_length>40</slot_end_min_length>
-            <slot_end_distance>40</slot_end_distance>
-            <jog_size>15</jog_size>
-            <jog_distance>30</jog_distance>
-            <inner_corner_distance>10</inner_corner_distance>
-            <outer_corner_distance>10</outer_corner_distance>
-          </param>
-          <detgroup name="detector_group_A">
-            <type>NILS_DET</type>
-            <det name="detector_A">
-              <setting>
-                <Orient>360</Orient>
-                <Polartiy>2</Polartiy>
-                <MINLW>0</MINLW>
-                <MAXLW>1000</MAXLW>
-                <CTWidth>0</CTWidth>
-                <Threshold1>1.5</Threshold1>
-                <Threshold2>-1</Threshold2>
-              </setting>
-              <general_property>
-                <deflayer>100</deflayer>
-              </general_property>
-              <custom_property>
-                <_nilsmode>0</_nilsmode>
-              </custom_property>
-            </det>
-          </detgroup>
-          <patternmatch>
-            <layer>target</layer>
-            <range>400</range>
-          </patternmatch>
-          <contourcrop>
-            <layer>contour</layer>
-            <range>400</range>
-            <deflayer>1000</deflayer>
-          </contourcrop>
-        </recipe>
-    </section_advanced>
-</LMCplus>
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+</style>
+<header>
+    <div id='opAll'>
+        <button onclick="expandAll()">Expand All</button>
+        <button onclick="collapseAll()">Collapse All</button>
+    </div>        
+    <div id='opRow'>
+        Row:<input type="text" id="myRow" value="0">
+        <button onclick="expand1R()">Expand R</button>
+        <button onclick="collapse1R()">Collapse R</button>
+    </div>        
+    <div id='opLevel'>
+        Level:<input type="text" id="myLevel" value="0">
+        <button onclick="expandnL()">Expand L</button>
+        <button onclick="collapsenL()">Collapse L</button>
+    </div>        
+</header>
+<body>
+<!-- <script src="//d3js.org/d3.v3.min.js"></script> -->
+<script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/d3.v3.min.js"></script>
+<script>
+
+var margin = {top: 20, right: 120, bottom: 20, left: 120},
+    width = 1920 - margin.right - margin.left,
+    height =800  - margin.top - margin.bottom;
+
+var i = 0,
+    duration = 750,
+    root;
+
+var tree = d3.layout.tree()
+    .size([height, width]);
+
+var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return [d.y, d.x]; });
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.right + margin.left)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json("flare.json", function(error, test) {
+// d3.json("full-flare.json", function(error, test) {
+// d3.json("short-flare.json", function(error, test) {
+// d3.json("std.json", function(error, test) {
+  if (error) throw error;
+
+  root = test;
+  root.x0 = height / 2;
+  root.y0 = 0;
+
+  // function collapse(d) {
+  //   if (d.children) {
+  //     d._children = d.children;
+  //     d._children.forEach(collapse);
+  //     d.children = null;
+  //   }
+  // }
+  //
+  // root.children.forEach(collapse);
+  collapseAll();
+  // expandAll();
+  update(root);
+});
+
+d3.select(self.frameElement).style("height", "800px");
+
+function update(source) {
+  
+  var duration = d3.event && d3.event.altKey ? 5000 : 500;
+  // compute the new height
+  var levelWidth = [1];
+  var childCount = function(level, n) {
+    if(n.children && n.children.length > 0) {
+      if(levelWidth.length <= level + 1) levelWidth.push(0);
+
+      levelWidth[level+1] += n.children.length;
+      n.children.forEach(function(d) {
+        childCount(level + 1, d);
+      });
+    }
+  };
+  childCount(0, root);  
+  var newHeight = d3.max(levelWidth) * 50; // 20 pixels per line  
+  tree = tree.size([newHeight, width]);
+  
+  // Compute the new tree layout.
+  var nodes = tree.nodes(root).reverse(),
+      links = tree.links(nodes);
+
+  // Normalize for fixed-depth.
+  nodes.forEach(function(d) { d.y = d.depth * 200; });
+
+  // Update the nodes
+  var node = svg.selectAll("g.node")
+      .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+  // Enter any new nodes at the parent's previous position.
+  var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+      .on("click", click);
+
+  nodeEnter.append("circle")
+      .attr("r", 1e-6)
+      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+  nodeEnter.append("text")
+      .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+      .text(function(d) { return d.name; })
+      .style("fill-opacity", 1e-6);
+
+  // Transition nodes to their new position.
+  var nodeUpdate = node.transition()
+      .duration(duration)
+      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+  nodeUpdate.select("circle")
+      .attr("r", 4.5)
+      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+  nodeUpdate.select("text")
+      .style("fill-opacity", 1.0);
+
+  // Transition exiting nodes to the parent's new position.
+  var nodeExit = node.exit().transition()
+      .duration(duration)
+      .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+      .remove();
+
+  nodeExit.select("circle")
+      .attr("r", 1e-6);
+
+  nodeExit.select("text")
+      .style("fill-opacity", 1e-6);
+
+  // Update the links
+  var link = svg.selectAll("path.link")
+      .data(links, function(d) { return d.target.id; });
+
+  // Enter any new links at the parent's previous position.
+  link.enter().insert("path", "g")
+      .attr("class", "link")
+      .attr("d", function(d) {
+        var o = {x: source.x0, y: source.y0};
+        return diagonal({source: o, target: o});
+      });
+
+  // Transition links to their new position.
+  link.transition()
+      .duration(duration)
+      .attr("d", diagonal);
+
+  // Transition exiting nodes to the parent's new position.
+  link.exit().transition()
+      .duration(duration)
+      .attr("d", function(d) {
+        var o = {x: source.x, y: source.y};
+        return diagonal({source: o, target: o});
+      })
+      .remove();
+
+  // Stash the old positions for transition.
+  nodes.forEach(function(d) {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[1];
+      });
+      d3.select("svg").attr("height", max + 250)
+      console.log(max)
+    }, 800)
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[0];
+      });
+      d3.select("svg").attr("width", max + 250)
+      console.log(max)
+    }, 800)
+}
+
+// Toggle children on click.
+function click(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else {
+    d.children = d._children;
+    d._children = null;
+  }
+  update(d);
+}
+function expand(d){   
+    if (d._children) {        
+        d.children = d._children;
+        d._children = null;       
+    }
+    var children = (d.children)?d.children:d._children;
+    if(children)
+      children.forEach(expand);
+}
+
+function collapse(d) {
+  if (d.children) {
+      d._children = d.children;
+      d._children.forEach(collapse);
+      d.children = null;
+    }
+}
+
+function expandAll(){
+    expand(root); 
+    update(root);
+}
+
+function collapseAll(){
+    root.children.forEach(collapse);
+    collapse(root);
+    update(root);
+}
+
+function expandnL(){
+    //expandLevel(root); 
+    expandAll()
+    collapseLevel(root)
+    update(root);
+
+}
+function expandLevel(d){   
+    var nL = d3.select("#myLevel").property("value");
+    if (d._children) {        
+        d.children = d._children;
+        d._children = null;       
+    }
+    var children = (d.children)?d.children:d._children;
+    if(children && d.depth <nL ){
+      children.forEach(expandLevel);
+    }
+    //  else if (children) { 
+    //          d.children.forEach(expandLevel); 
+    //      } 
+    //if (d._children && d.depth < nL) {
+    //        d.children = d._children;
+    //        d.children.forEach(expandLevel);
+    //        d._children = null;
+    //    } else if (d._children) {
+    //            d._children.forEach(expandLevel);
+    //        }
+}
+
+function collapsenL(){
+    collapseLevel(root);
+    update(root);
+}
+
+function collapseLevel(d) {
+    var nL = d3.select("#myLevel").property("value")-1;
+    if (d.children && d.depth > nL) {
+            d._children = d.children;
+            d._children.forEach(collapseLevel);
+            d.children = null;
+        } else if (d.children) {
+                d.children.forEach(collapseLevel);
+            }
+}
+
+function expand1R(){   
+    var myRow = d3.select("#myRow").property("value");
+    expand(root.children[myRow]); 
+    update(root);
+}
+
+function collapse1R(){   
+    var myRow = d3.select("#myRow").property("value");
+    collapse(root.children[myRow]); 
+    update(root);
+}
+
+function mouseover(d) {
+    d3.select(this).append("text")
+        .attr("class", "hover")
+        .attr('transform', function(d){ 
+                            return 'translate(5, -10)';
+                                    })
+        .text(d.name + ": " + d.id);
+}
+
+// Toggle children on click.
+function mouseout(d) {
+    d3.select(this).select("text.hover").remove();
+}
+
+</script>
 
