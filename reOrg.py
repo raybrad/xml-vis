@@ -15,7 +15,7 @@ def transform(args):
         jobxml[s]=getSection(root,s)
     # pprint(jobxml)    
     inspectTree=genInspectTree(jobxml)
-    pprint(inspectTree)                        
+    # pprint(inspectTree)                        
     outDict=fixup(inspectTree)
     jsonFile=json.dumps(outDict, indent=4)
     outputfile = open("flare.json", 'w')
@@ -78,7 +78,7 @@ def genInspectTree(jobxml):
     woInspectXML=copy.deepcopy(jobxml)
     woInspectXML.pop('section_inspect')
     # inspectTree=copy.deepcopy(jobxml['section_inspect']) #use deep copy,otherwise generator will work on inspectTree/jobxml too
-    inspectTree=expandTree(jobxml['section_inspect'],woInspectXML)    
+    inspectTree={'section_inspect':expandTree(jobxml['section_inspect'],woInspectXML)}
     # for k1,v1 in expand[0].items():
     #         if match1:
     #           #<operation>SIZING(L_cafill,${Upsizefill},"O")</operation>
@@ -130,6 +130,7 @@ def fixup(what):
         return [dict(name=what)]
     elif isinstance(what, list):
         return [dict(name=i,children=fixup(x)) for i,x in enumerate(what)]
+        # return [dict(fixup(x)) for i,x in enumerate(what)]
 
     elif isinstance(what, dict):
         if len(what)==1:
