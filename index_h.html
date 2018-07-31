@@ -12,6 +12,11 @@
   stroke-width: 1.5px;
 }
 
+.found {
+	fill: #ff4136;
+	stroke: #ff4136;
+}
+
 .node text {
   font: 10px sans-serif;
 }
@@ -21,27 +26,36 @@
   stroke: #ccc;
   stroke-width: 1.5px;
 }
+/* .search { */
+/*   width: 100%; */
+/* } */
 
 </style>
+<!-- <link rel="stylesheet" type="text/css" href="/gpfs/PEG/LMC/yinhuang/sandbox/d3/css/select2.min.css"></link> -->
 <header>
     <div id='opAll'>
         <button onclick="expandAll()">Expand All</button>
         <button onclick="collapseAll()">Collapse All</button>
     </div>        
     <div id='opRow'>
-        Row:<input type="text" id="myRow" value="0">
-        <button onclick="expand1R()">Expand R</button>
-        <button onclick="collapse1R()">Collapse R</button>
-    </div>        
-    <div id='opLevel'>
+        Row  :<input type="text" id="myRow" value="0">
         Level:<input type="text" id="myLevel" value="0">
-        <button onclick="expandnL()">Expand L</button>
-        <button onclick="collapsenL()">Collapse L</button>
+        <button onclick="expandRL()">Expand@Row@Level</button>
+        <!-- <button onclick="collapse1R()">Collapse R</button> -->
     </div>        
+    <div id="searchBox">
+        Key: <input type="text" id="myKey" value="inspect1">
+        <button onclick="search()">Search</button>
+    </div>
+    <!-- <div id='opLevel'> -->
+    <!--     <button onclick="expandnL()">Expand L</button> -->
+    <!--     <button onclick="collapsenL()">Collapse L</button> -->
+    <!-- </div>         -->
 </header>
 <body>
-<!-- <script src="//d3js.org/d3.v3.min.js"></script> -->
 <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/d3.v3.min.js"></script>
+<!-- <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/select2.min.js"></script> -->
+<!-- <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/jquery&#45;2.1.1.min.js"></script> -->
 <script>
 
 var margin = {top: 20, right: 120, bottom: 20, left: 120},
@@ -50,6 +64,7 @@ var margin = {top: 20, right: 120, bottom: 20, left: 120},
 
 var i = 0,
     duration = 750,
+    //select2_data,
     root;
 
 var tree = d3.layout.tree()
@@ -61,31 +76,26 @@ var diagonal = d3.svg.diagonal()
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.right + margin.left)
     .attr("height", height + margin.top + margin.bottom)
-  .append("g")
+    .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+
 d3.json("flare.json", function(error, test) {
-// d3.json("full-flare.json", function(error, test) {
-// d3.json("short-flare.json", function(error, test) {
-// d3.json("std.json", function(error, test) {
   if (error) throw error;
 
   root = test;
+  //select2_data = extract_select2_data(test,[],0)[1];//I know, not the prettiest...
   root.x0 = height / 2;
   root.y0 = 0;
 
-  // function collapse(d) {
-  //   if (d.children) {
-  //     d._children = d.children;
-  //     d._children.forEach(collapse);
-  //     d.children = null;
-  //   }
-  // }
-  //
   root.children.forEach(collapse);
   //collapseAll();
-  // expandAll();
   update(root);
+  //init search box
+  //$("#search").select2({
+  //	data: select2_data,
+  //	containerCssClass: "search"
+  //});
 });
 
 d3.select(self.frameElement).style("height", "800px");
@@ -109,13 +119,13 @@ function update(source) {
   var newHeight = d3.max(levelWidth) * 50; // 20 pixels per line  
   tree = tree.size([newHeight, width]);
   
-  //d3.select("svg").remove();//TO REMOVE THE ALREADY SVG CONTENTS AND RELOAD ON EVERY UPDATE
+  d3.select("svg").remove();//TO REMOVE THE ALREADY SVG CONTENTS AND RELOAD ON EVERY UPDATE
 
-  //svg = d3.select("body").append("svg")
-  //    .attr("width", width + margin.right + margin.left)
-  //    .attr("height", newHeight + margin.top + margin.bottom)
-  //    .append("g")
-  //    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  svg = d3.select("body").append("svg")
+      .attr("width", width + margin.right + margin.left)
+      .attr("height", newHeight + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
   // Compute the new tree layout.
   var nodes = tree.nodes(root).reverse(),
@@ -151,9 +161,23 @@ function update(source) {
       .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
   nodeUpdate.select("circle")
-      .attr("r", 4.5)
-      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
-
+  	.attr("r", 4.5)
+  	.style("fill", function(d) {
+  		if(d.class === "found"){
+  			return "#ff4136"; //red
+  		}
+  		else if(d._children){
+  			return "lightsteelblue";
+  		}
+  		else{
+  			return "#fff";
+  		}
+  	})
+  	.style("stroke", function(d) {
+  		if(d.class === "found"){
+  			return "#ff4136"; //red
+  		}
+  });
   nodeUpdate.select("text")
       .style("fill-opacity", 1.0);
 
@@ -183,9 +207,14 @@ function update(source) {
 
   // Transition links to their new position.
   link.transition()
-      .duration(duration)
-      .attr("d", diagonal);
-
+  	.duration(duration)
+  	.attr("d", diagonal)
+  	.style("stroke",function(d){
+  		if(d.target.class==="found"){
+  			return "#ff4136";
+  		}
+  	});
+  
   // Transition exiting nodes to the parent's new position.
   link.exit().transition()
       .duration(duration)
@@ -230,6 +259,7 @@ function click(d) {
   update(d);
 }
 function expand(d){   
+    //window.alert('expand'+d.depth)
     if (d._children) {        
         d.children = d._children;
         d._children = null;       
@@ -247,51 +277,6 @@ function collapse(d) {
     }
 }
 
-function expandAll(){
-    expand(root); 
-    update(root);
-}
-
-function collapseAll(){
-    root.children.forEach(collapse);
-    collapse(root);
-    update(root);
-}
-
-function expandnL(){
-    //expandLevel(root); 
-    expandAll()
-    collapseLevel(root)
-    update(root);
-
-}
-function expandLevel(d){   
-    var nL = d3.select("#myLevel").property("value");
-    if (d._children) {        
-        d.children = d._children;
-        d._children = null;       
-    }
-    var children = (d.children)?d.children:d._children;
-    if(children && d.depth <nL ){
-      children.forEach(expandLevel);
-    }
-    //  else if (children) { 
-    //          d.children.forEach(expandLevel); 
-    //      } 
-    //if (d._children && d.depth < nL) {
-    //        d.children = d._children;
-    //        d.children.forEach(expandLevel);
-    //        d._children = null;
-    //    } else if (d._children) {
-    //            d._children.forEach(expandLevel);
-    //        }
-}
-
-function collapsenL(){
-    collapseLevel(root);
-    update(root);
-}
-
 function collapseLevel(d) {
     var nL = d3.select("#myLevel").property("value")-1;
     if (d.children && d.depth > nL) {
@@ -299,22 +284,88 @@ function collapseLevel(d) {
             d._children.forEach(collapseLevel);
             d.children = null;
         } else if (d.children) {
-                d.children.forEach(collapseLevel);
+               d.children.forEach(collapseLevel);
             }
 }
 
-function expand1R(){   
-    var myRow = d3.select("#myRow").property("value");
-    expand(root.children[myRow]); 
-    //collapseLevel(root.children[myRow]);
+function expandAll(){
+    expand(root); 
     update(root);
 }
 
-function collapse1R(){   
-    var myRow = d3.select("#myRow").property("value");
-    collapse(root.children[myRow]); 
-    //collapseLevel(root.children[myRow]);
+function collapseAll(){
+    collapse(root);
     update(root);
+}
+
+
+function expandRL(){   
+    var myRow = d3.select("#myRow").property("value");
+    expand(root.children[myRow]); 
+    update(root);
+    collapseLevel(root.children[myRow]);
+    update(root);
+}
+
+function search(){   
+    //attach search box listener
+    var myKey=d3.select("#myKey").property("value");
+ 	var paths = searchTree(root,myKey,[]);
+ 	if(typeof(paths) !== "undefined"){
+ 		openPaths(paths);
+ 	}
+ 	else{
+ 		alert(e.object.text+" not found!");
+ 	}
+}
+
+//basically a way to get the path to an object
+function searchTree(obj,search,path){
+	if(obj.name === search){ //if search is found return, add the object to the path and return it
+		path.push(obj);
+		return path;
+	}
+	else if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
+		var children = (obj.children) ? obj.children : obj._children;
+		for(var i=0;i<children.length;i++){
+			path.push(obj);// we assume this path is the right one
+			var found = searchTree(children[i],search,path);
+			if(found){// we were right, this should return the bubbled-up path from the first if statement
+				return found;
+			}
+			else{//we were wrong, remove this parent from the path and continue iterating
+				path.pop();
+			}
+		}
+	}
+	else{//not the right object, return false so it will continue to iterate in the loop
+		return false;
+	}
+}
+
+function extract_select2_data(node,leaves,index){
+        if (node.children){
+            for(var i = 0;i<node.children.length;i++){
+                index = extract_select2_data(node.children[i],leaves,index)[0];
+            }
+        }
+        else {
+            leaves.push({id:++index,text:node.name});
+        }
+        return [index,leaves];
+}
+
+function openPaths(paths){
+	for(var i =0;i<paths.length;i++){
+		if(paths[i].id !== "1"){//i.e. not root
+			paths[i].class = 'found';
+			if(paths[i]._children){ //if children are hidden: open them, otherwise: don't do anything
+				paths[i].children = paths[i]._children;
+    			paths[i]._children = null;
+			}
+			update(paths[i]);
+		}
+	}
 }
 
 function mouseover(d) {
