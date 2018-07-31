@@ -82,8 +82,8 @@ d3.json("flare.json", function(error, test) {
   //   }
   // }
   //
-  // root.children.forEach(collapse);
-  collapseAll();
+  root.children.forEach(collapse);
+  //collapseAll();
   // expandAll();
   update(root);
 });
@@ -108,6 +108,14 @@ function update(source) {
   childCount(0, root);  
   var newHeight = d3.max(levelWidth) * 50; // 20 pixels per line  
   tree = tree.size([newHeight, width]);
+  
+  //d3.select("svg").remove();//TO REMOVE THE ALREADY SVG CONTENTS AND RELOAD ON EVERY UPDATE
+
+  //svg = d3.select("body").append("svg")
+  //    .attr("width", width + margin.right + margin.left)
+  //    .attr("height", newHeight + margin.top + margin.bottom)
+  //    .append("g")
+  //    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
   // Compute the new tree layout.
   var nodes = tree.nodes(root).reverse(),
@@ -298,12 +306,14 @@ function collapseLevel(d) {
 function expand1R(){   
     var myRow = d3.select("#myRow").property("value");
     expand(root.children[myRow]); 
+    //collapseLevel(root.children[myRow]);
     update(root);
 }
 
 function collapse1R(){   
     var myRow = d3.select("#myRow").property("value");
     collapse(root.children[myRow]); 
+    //collapseLevel(root.children[myRow]);
     update(root);
 }
 
