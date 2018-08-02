@@ -26,12 +26,8 @@
   stroke: #ccc;
   stroke-width: 1.5px;
 }
-/* .search { */
-/*   width: 100%; */
-/* } */
 
 </style>
-<!-- <link rel="stylesheet" type="text/css" href="/gpfs/PEG/LMC/yinhuang/sandbox/d3/css/select2.min.css"></link> -->
 <header>
     <div id='opAll'>
         <button onclick="expandAll()">Expand All</button>
@@ -47,15 +43,9 @@
         Key: <input type="text" id="myKey" value="inspect1">
         <button onclick="search()">Search</button>
     </div>
-    <!-- <div id='opLevel'> -->
-    <!--     <button onclick="expandnL()">Expand L</button> -->
-    <!--     <button onclick="collapsenL()">Collapse L</button> -->
-    <!-- </div>         -->
 </header>
 <body>
 <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/d3.v3.min.js"></script>
-<!-- <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/select2.min.js"></script> -->
-<!-- <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/jquery&#45;2.1.1.min.js"></script> -->
 <script>
 
 var margin = {top: 20, right: 120, bottom: 20, left: 120},
@@ -64,7 +54,6 @@ var margin = {top: 20, right: 120, bottom: 20, left: 120},
 
 var i = 0,
     duration = 750,
-    //select2_data,
     root;
 
 var tree = d3.layout.tree()
@@ -84,18 +73,11 @@ d3.json("flare.json", function(error, test) {
   if (error) throw error;
 
   root = test;
-  //select2_data = extract_select2_data(test,[],0)[1];//I know, not the prettiest...
   root.x0 = height / 2;
   root.y0 = 0;
 
   root.children.forEach(collapse);
-  //collapseAll();
   update(root);
-  //init search box
-  //$("#search").select2({
-  //	data: select2_data,
-  //	containerCssClass: "search"
-  //});
 });
 
 d3.select(self.frameElement).style("height", "800px");
@@ -154,6 +136,14 @@ function update(source) {
       .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
       .text(function(d) { return d.name; })
       .style("fill-opacity", 1e-6);
+      //.style('font',function(d){return d.name.length<30 ?'10px sans-serif':'7px sans-serif';});
+  
+  // Update the text to reflect whether node has children or not.
+  node.select('text')
+      .attr("x", function (d) {return d.children || d._children ? -10 : 10; })
+      .attr("text-anchor", function (d) {return d.children || d._children ? "end" : "start";})
+      .text(function (d) {return d.name;})
+      .call(wrap, 180);
 
   // Transition nodes to their new position.
   var nodeUpdate = node.transition()
@@ -247,6 +237,36 @@ function update(source) {
     }, 800)
 }
 
+//wrap
+function wrap(text, width) {
+  console.log(text, 'text');
+  text.each(function() {
+    var text = d3.select(this),
+        //Use positive lookahead so that the regular expression asserts that the special character exists, but does not actually match it
+        words = text.text().split(/(?=[\s*/+-]+)/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        x = text.attr("x"),
+        y = 0, //text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tmp={'x':x,'y':y,'dy':dy,'lineNumber':lineNumber,'lineHeight':lineHeight}
+        console.log(tmp)
+        tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+        console.log('length:'+tspan.text())
+      }
+    }
+  });
+}
 // Toggle children on click.
 function click(d) {
   if (d.children) {
@@ -298,7 +318,6 @@ function collapseAll(){
     update(root);
 }
 
-
 function expandRL(){   
     var myRow = d3.select("#myRow").property("value");
     expand(root.children[myRow]); 
@@ -342,7 +361,7 @@ function searchTree(obj,search,path){
 		return false;
 	}
 }
-
+// not used currently, to extract last leaf level node name
 function extract_select2_data(node,leaves,index){
         if (node.children){
             for(var i = 0;i<node.children.length;i++){
