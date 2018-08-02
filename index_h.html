@@ -297,14 +297,19 @@ function collapse(d) {
     }
 }
 
-function collapseLevel(d) {
-    var nL = d3.select("#myLevel").property("value")-1;
-    if (d.children && d.depth > nL) {
+function collapseLevel(d,n) {
+    if (d.children && d.depth > n) {
             d._children = d.children;
-            d._children.forEach(collapseLevel);
+            //d._children.forEach(collapseLevel);
+            for (var i in d._children){
+                collapseLevel(d._children[i],n)
+            };
             d.children = null;
         } else if (d.children) {
-               d.children.forEach(collapseLevel);
+               //d.children.forEach(collapseLevel);
+                for (var i in d.children){
+                    collapseLevel(d.children[i],n)
+                };
             }
 }
 
@@ -320,9 +325,10 @@ function collapseAll(){
 
 function expandRL(){   
     var myRow = d3.select("#myRow").property("value");
+    var myLevel = d3.select("#myLevel").property("value")-1;
     expand(root.children[myRow]); 
     update(root);
-    collapseLevel(root.children[myRow]);
+    collapseLevel(root.children[myRow],myLevel);
     update(root);
 }
 
