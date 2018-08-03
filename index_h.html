@@ -34,14 +34,17 @@
         <button onclick="collapseAll()">Reset</button>
     </div>        
     <div id='opRow'>
-        <select id="inspectType">
-          <option value="0" selected="selected">inspect1</option>
+        Type:<select id="inspectType" onchange="inspectChange(this);">
+          <option value="-1" >select type</option>
+          <option value="0">inspect1</option>
           <option value="1">inspect2</option>
         </select>
-        Row :<input type="text" id="myRow" value="0">
+        Inspect:<select id="inspect">
+        </select>
+        <br/>
+        <!-- Row :<input type="text" id="myRow" value="0"> -->
         Level:<input type="text" id="myLevel" value="1">
         <button onclick="expandRL()">Expand@Inspect@Level</button>
-        <!-- <button onclick="collapse1R()">Collapse R</button> -->
     </div>        
     <div id="searchBox">
         Key: <input type="text" id="myKey" value="detgroup">
@@ -325,9 +328,13 @@ function collapseAll(){
 }
 
 function expandRL(){   
-    var Row = d3.select("#myRow").property("value");
+    //var Row = d3.select("#myRow").property("value");
+    var Row=selectOption("inspect");
     var Level= d3.select("#myLevel").property("value");
     var inspectType=selectOption("inspectType");
+    if (inspectType != "0" && inspectType != "1"){
+        window.alert('Please select inspect1 or inspect2!')
+    };
     inspect=root.children[inspectType];
     count=inspect.children.length;
     if ((count-1) <Row){
@@ -347,10 +354,14 @@ function selectOption(key){
 
 function search(){   
     //attach search box listener
-    var Row = d3.select("#myRow").property("value");
+    //var Row = d3.select("#myRow").property("value");
+    var Row=selectOption("inspect");
     var Key=d3.select("#myKey").property("value");
     
     var inspectType=selectOption("inspectType");
+    if (inspectType != "0" && inspectType != "1"){
+        window.alert('Please select inspect1 or inspect2!')
+    };
     inspect=root.children[inspectType];
     count=inspect.children.length;
     if ((count-1) <Row){
@@ -428,6 +439,40 @@ function mouseover(d) {
 function mouseout(d) {
     d3.select(this).select("text.hover").remove();
 }
+/* inspectChange() is called from the onchange event of a select element. 
+* param selectObj - the select object which fired the on change event. 
+*/ 
+function inspectChange(selectObj) { 
+   // get the index of the selected option 
+   var idx = selectObj.selectedIndex; 
+   // get the value of the selected option 
+   var which = selectObj.options[idx].value; 
+   // use the selected option value to retrieve the list of items from the inspectLists array 
+   //inspect=root.children[which].forEach(function(d) { return d.name; });
+   inspect=root.children[which].children;
+   cList = inspect; 
+   // get the inspect select element via its known id 
+   var cSelect = document.getElementById("inspect"); 
+   // remove the current options from the inspect select 
+   var len=cSelect.options.length; 
+   while (cSelect.options.length > 0) { 
+   cSelect.remove(0); 
+   } 
+   var newOption; 
+   // create new options 
+   for (var i=0; i<cList.length; i++) { 
+       newOption = document.createElement("option"); 
+       newOption.value = i;  // assumes option string and value are the same 
+       newOption.text=cList[i].name; 
+       // add the new option 
+       try { 
+           cSelect.add(newOption);  // this will fail in DOM browsers but is needed for IE 
+       } 
+       catch (e) { 
+           cSelect.appendChild(newOption); 
+       } 
+   } 
+} 
 
 </script>
 
