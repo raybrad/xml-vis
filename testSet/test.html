@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.found {
+	fill: #ff4136;
+	stroke: #ff4136;
+}
+
+.node text {
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+.slidecontainer {
+    width: 20%;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #4CAF50;
+    cursor: pointer;
+}
+/* .search { */
+/*   width: 100%; */
+/* } */
+
+</style>
+<!-- <link rel="stylesheet" type="text/css" href="/gpfs/PEG/LMC/yinhuang/sandbox/d3/css/select2.min.css"></link> -->
+<header>
+    <div id='opAll'>
+        <button onclick="expandAll()">FullTree</button>
+        <button onclick="collapseAll()">Reset</button>
+    </div>        
+    <div id='opRow'>
+        <select id="inspectType">
+          <option value="0" selected="selected">inspect1</option>
+          <option value="1">inspect2</option>
+        </select>
+        <select id="inspects">
+        </select>
+        Row :<input type="text" id="myRow" value="0">
+        Level:<input type="text" id="myLevel" value="1">
+        <button onclick="expandRL()">Expand@Inspect@Level</button>
+        <!-- <button onclick="collapse1R()">Collapse R</button> -->
+    </div>        
+    <div id="searchBox">
+        Key: <input type="text" id="myKey" value="detgroup">
+        <button onclick="search()">Search</button>
+    </div>
+    <div class="slidecontainer">
+          <input type="range" min="0" max="9" value="2" class="slider" id="myRange">
+          <p>Value: <span id="demo"></span></p>
+    </div>
+    <!-- <div id='opLevel'> -->
+    <!--     <button onclick="expandnL()">Expand L</button> -->
+    <!--     <button onclick="collapsenL()">Collapse L</button> -->
+    <!-- </div>         -->
+</header>
+<body>
+<script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/d3.v3.min.js"></script>
+<!-- <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/select2.min.js"></script> -->
+<!-- <script src="/gpfs/PEG/LMC/yinhuang/sandbox/d3/js/jquery&#45;2.1.1.min.js"></script> -->
+<script>
+//var nL=3;
+
+var slider = document.getElementById("myRange");
+var output = document.getElementById("demo");
+output.innerHTML = slider.value;
+
+slider.oninput = function() {
+  output.innerHTML = this.value;
+  //nL=this.value;
+  //expandL();
+}
+
+var margin = {top: 20, right: 120, bottom: 20, left: 120},
+    width = 1920 - margin.right - margin.left,
+    height =800  - margin.top - margin.bottom;
+
+
+var i = 0,
+    duration = 750,
+    //select2_data,
+    root;
+var maxLabelLength = 0,
+    totalNodes = 0;
+
+var tree = d3.layout.tree()
+    .size([height, width]);
+
+var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return [d.y, d.x]; });
+ 
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.right + margin.left)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+d3.json("flare.json", function(error, test) {
+  if (error) throw error;
+
+  root = test;
+  select2_data = extract_select2_data(test,[],0);//I know, not the prettiest...
+  root.x0 = height / 2;
+  root.y0 = 0;
+  //console.log(select2_data);
+  // A recursive helper function for performing some setup by walking through all nodes
+  function visit(parent, visitFn, childrenFn) {
+      if (!parent) return;
+  
+      visitFn(parent);
+  
+      var children = childrenFn(parent);
+      if (children) {
+          var count = children.length;
+          for (var i = 0; i < count; i++) {
+              visit(children[i], visitFn, childrenFn);
+          }
+      }
+  }
+
+   // Call visit function to establish maxLabelLength
+  visit(root, function (d) {
+      totalNodes++;
+      maxLabelLength = Math.max(d.name.length, maxLabelLength);
+  
+  }, function (d) {
+      return d.children && d.children.length > 0 ? d.children : null;
+  });
+  //console.log('totalNodes:'+totalNodes);
+  //root.children.forEach(collapse);
+  //console.log('root len:'+root.children.length)
+  //expandL();
+  //collapseAll();
+  expandAll()
+  collapseLevel(root,1);
+  update(root);
+  //init search box
+  //$("#search").select2({
+  //	data: select2_data,
+  //	containerCssClass: "search"
+  //});
+});
+
+//var max = d3.max(d3.selectAll(".node")[0]);
+//window.alert(max)
+
+d3.select(self.frameElement).style("height", "800px");
+
+function update(source) {
+  
+  var duration = d3.event && d3.event.altKey ? 5000 : 500;
+  // compute the new height
+  var levelWidth = [1];
+  var childCount = function(level, n) {
+    if(n.children && n.children.length > 0) {
+      if(levelWidth.length <= level + 1) levelWidth.push(0);
+      levelWidth[level+1] += n.children.length;
+      //console.log('children len'+n.children.length);
+      n.children.forEach(function(d) {
+        childCount(level + 1, d);
+      });
+    }
+  };
+  childCount(0, root);  
+  var newHeight = d3.max(levelWidth) * 50; // 20 pixels per line  
+  tree = tree.size([newHeight, width]);
+  
+  //d3.select("svg").remove();//TO REMOVE THE ALREADY SVG CONTENTS AND RELOAD ON EVERY UPDATE
+  //svg = d3.select("body").append("svg")
+  //    .attr("width", width + margin.right + margin.left)
+  //    .attr("height", newHeight + margin.top + margin.bottom)
+  //    .append("g")
+  //    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  
+  // Compute the new tree layout.
+  var nodes = tree.nodes(root).reverse(),
+      links = tree.links(nodes);
+
+  // Normalize for fixed-depth.
+  nodes.forEach(function (d) {
+      //d.y = (d.depth * (maxLabelLength * 10)); //maxLabelLength * 10px
+      // alternatively to keep a fixed scale one can set a fixed depth per level
+      // Normalize for fixed-depth by commenting out below line
+      d.y = (d.depth * 200); //200px per level.
+      //console.log('node depth:'+d.depth);
+  });
+
+  // Update the nodes
+  var node = svg.selectAll("g.node")
+      .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+  // Enter any new nodes at the parent's previous position.
+  var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+      .on("click", click);
+
+  nodeEnter.append("circle")
+      .attr("r", 1e-6)
+      .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+  nodeEnter.append("text")
+      .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+      .text(function(d) { return d.name; })
+      .style("fill-opacity", 1e-6);
+      //.style('font',function(d){return d.name.length<30 ?'10px sans-serif':'7px sans-serif';});
+  
+  // Update the text to reflect whether node has children or not.
+  node.select('text')
+      .attr("x", function (d) {return d.children || d._children ? -10 : 10; })
+      .attr("text-anchor", function (d) {return d.children || d._children ? "end" : "start";})
+      .text(function (d) {return d.name;})
+      .call(wrap, 180);
+
+  // Transition nodes to their new position.
+  var nodeUpdate = node.transition()
+      .duration(duration)
+      .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+  nodeUpdate.select("circle")
+  	.attr("r", 4.5)
+  	.style("fill", function(d) {
+  		if(d.class === "found"){
+  			return "#ff4136"; //red
+  		}
+  		else if(d._children){
+  			return "lightsteelblue";
+  		}
+  		else{
+  			return "#fff";
+  		}
+  	})
+  	.style("stroke", function(d) {
+  		if(d.class === "found"){
+  			return "#ff4136"; //red
+  		}
+  });
+  nodeUpdate.select("text")
+      .style("fill-opacity", 1.0);
+
+  // Transition exiting nodes to the parent's new position.
+  var nodeExit = node.exit().transition()
+      .duration(duration)
+      .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+      .remove();
+
+  nodeExit.select("circle")
+      .attr("r", 1e-6);
+
+  nodeExit.select("text")
+      .style("fill-opacity", 1e-6);
+
+  // Update the links
+  var link = svg.selectAll("path.link")
+      .data(links, function(d) { return d.target.id; });
+
+  // Enter any new links at the parent's previous position.
+  link.enter().insert("path", "g")
+      .attr("class", "link")
+      .attr("d", function(d) {
+        var o = {x: source.x0, y: source.y0};
+        return diagonal({source: o, target: o});
+      });
+
+  // Transition links to their new position.
+  link.transition()
+  	.duration(duration)
+  	.attr("d", diagonal)
+  	.style("stroke",function(d){
+  		if(d.target.class==="found"){
+  			return "#ff4136";
+  		}
+  	});
+  
+  // Transition exiting nodes to the parent's new position.
+  link.exit().transition()
+      .duration(duration)
+      .attr("d", function(d) {
+        var o = {x: source.x, y: source.y};
+        return diagonal({source: o, target: o});
+      })
+      .remove();
+
+  // Stash the old positions for transition.
+  nodes.forEach(function(d) {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[1];
+      });
+      d3.select("svg").attr("height", max + 250)
+      console.log(max)
+    }, 1000)
+  
+  window.setTimeout(function() {
+      var max = d3.max(d3.selectAll(".node")[0], function(g) {
+        return d3.transform(d3.select(g).attr("transform")).translate[0];
+      });
+      d3.select("svg").attr("width", max + 250)
+      console.log(max)
+    }, 1000)
+}
+
+//wrap
+function wrap(text, width) {
+  //console.log(text, 'text');
+  text.each(function() {
+    var text = d3.select(this),
+        //Use positive lookahead so that the regular expression asserts that the special character exists, but does not actually match it
+        words = text.text().split(/(?=[\s*/+-]+)/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        x = text.attr("x"),
+        y = 0, //text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tmp={'x':x,'y':y,'dy':dy,'lineNumber':lineNumber,'lineHeight':lineHeight}
+        //console.log(tmp)
+        tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+        //console.log('length:'+tspan.text())
+      }
+    }
+  });
+}
+// Toggle children on click.
+function click(d) {
+  if (d.children) {
+    d._children = d.children;
+    d.children = null;
+  } else {
+    d.children = d._children;
+    d._children = null;
+  }
+  update(d);
+}
+function expand(d){   
+    //window.alert('expand'+d.depth)
+    if (d._children) {        
+        d.children = d._children;
+        d._children = null;       
+    }
+    var children = (d.children)?d.children:d._children;
+    if(children)
+      children.forEach(expand);
+}
+
+function collapse(d) {
+  if (d.children) {
+      d._children = d.children;
+      d._children.forEach(collapse);
+      d.children = null;
+    }
+}
+
+function collapseLevel(d,n) {
+    //console.log('nL:'+nL)
+    if (d.children && d.depth > n) {
+            d._children = d.children;
+            //d._children.forEach(collapseLevel);
+            for (var i in d._children){
+                collapseLevel(d._children[i],n)
+            };
+            d.children = null;
+        } else if (d.children) {
+               //d.children.forEach(collapseLevel);
+            for (var i in d.children){
+                collapseLevel(d.children[i],n)
+            };
+            }
+}
+
+function expandAll(){
+    expand(root); 
+    update(root);
+}
+
+function collapseAll(){
+    //collapse(root);
+    collapseLevel(root,1);
+    update(root);
+}
+
+function expandL(){   
+    var Level = d3.select("#myLevel").property("value");
+    expandAll()
+    collapseLevel(root,Level);
+    update(root);
+}
+
+
+function expandRL(){   
+    var Row = d3.select("#myRow").property("value");
+    var Level= d3.select("#myLevel").property("value");
+    console.log('level'+Level);
+    var inspectType=selectOption("inspectType");
+    inspect=root.children[inspectType];
+    count=inspect.children.length;
+    if ((count-1) <Row){
+        window.alert('Inspect Row not exist!')
+    };
+    //if ((count-1) <Row){
+    //    Row=Row-count
+    //    inspect=root.children[1]
+    //}
+    expand(inspect.children[Row])
+    update(root);
+    //collapseLevel(root.children[Row],Level);
+    collapseLevel(inspect.children[Row],Level);
+    update(root);
+}
+
+function selectOption(key){
+    var e=document.getElementById(key);
+    var option = e.options[e.selectedIndex].value;
+    return option;
+}
+
+function search(){   
+    //attach search box listener
+    var Row = d3.select("#myRow").property("value");
+    var Key=d3.select("#myKey").property("value");
+    
+    var inspectType=selectOption("inspectType");
+    inspect=root.children[inspectType];
+    count=inspect.children.length;
+    if ((count-1) <Row){
+        window.alert('Inspect Row not exist!')
+    };
+   
+    var paths = searchTree(inspect.children[Row],Key,[]);
+ 	if(typeof(paths) !== "undefined"){
+ 		openPaths(paths);
+ 	}
+ 	else{
+ 		alert(e.object.text+" not found!");
+ 	}
+}
+
+//basically a way to get the path to an object
+function searchTree(obj,search,path){
+	if(obj.name === search){ //if search is found return, add the object to the path and return it
+		path.push(obj);
+		return path;
+	}
+	else if(obj.children || obj._children){ //if children are collapsed d3 object will have them instantiated as _children
+		var children = (obj.children) ? obj.children : obj._children;
+		for(var i=0;i<children.length;i++){
+			path.push(obj);// we assume this path is the right one
+			var found = searchTree(children[i],search,path);
+			if(found){// we were right, this should return the bubbled-up path from the first if statement
+				return found;
+			}
+			else{//we were wrong, remove this parent from the path and continue iterating
+				path.pop();
+			}
+		}
+	}
+	else{//not the right object, return false so it will continue to iterate in the loop
+		return false;
+	}
+}
+
+function extract_select2_data(node,leaves,index){
+        if (node.children){
+            for(var i = 0;i<node.children.length;i++){
+                index = extract_select2_data(node.children[i],leaves,index)[0];
+            }
+        }
+        else {
+            leaves.push({id:++index,text:node.name});
+        }
+        return [index,leaves];
+}
+
+function openPaths(paths){
+	for(var i =0;i<paths.length;i++){
+		if(paths[i].id !== "1"){//i.e. not root
+			paths[i].class = 'found';
+			if(paths[i]._children){ //if children are hidden: open them, otherwise: don't do anything
+				paths[i].children = paths[i]._children;
+    			paths[i]._children = null;
+			}
+			update(paths[i]);
+		}
+	}
+}
+
+function mouseover(d) {
+    d3.select(this).append("text")
+        .attr("class", "hover")
+        .attr('transform', function(d){ 
+                            return 'translate(5, -10)';
+                                    })
+        .text(d.name + ": " + d.id);
+}
+
+// Toggle children on click.
+function mouseout(d) {
+    d3.select(this).select("text.hover").remove();
+}
+
+</script>
+
