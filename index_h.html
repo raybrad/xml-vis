@@ -30,17 +30,21 @@
 </style>
 <header>
     <div id='opAll'>
-        <button onclick="expandAll()">Expand All</button>
-        <button onclick="collapseAll()">Collapse All</button>
+        <button onclick="expandAll()">FullTree</button>
+        <button onclick="collapseAll()">Reset</button>
     </div>        
     <div id='opRow'>
-        Row  :<input type="text" id="myRow" value="0">
-        Level:<input type="text" id="myLevel" value="0">
-        <button onclick="expandRL()">Expand@Row@Level</button>
+        <select id="inspectType">
+          <option value="0" selected="selected">inspect1</option>
+          <option value="1">inspect2</option>
+        </select>
+        Row :<input type="text" id="myRow" value="0">
+        Level:<input type="text" id="myLevel" value="1">
+        <button onclick="expandRL()">Expand@Inspect@Level</button>
         <!-- <button onclick="collapse1R()">Collapse R</button> -->
     </div>        
     <div id="searchBox">
-        Key: <input type="text" id="myKey" value="inspect1">
+        Key: <input type="text" id="myKey" value="detgroup">
         <button onclick="search()">Search</button>
     </div>
 </header>
@@ -76,7 +80,8 @@ d3.json("flare.json", function(error, test) {
   root.x0 = height / 2;
   root.y0 = 0;
 
-  root.children.forEach(collapse);
+  expandAll()
+  collapseLevel(root,1);
   update(root);
 });
 
@@ -101,13 +106,13 @@ function update(source) {
   var newHeight = d3.max(levelWidth) * 50; // 20 pixels per line  
   tree = tree.size([newHeight, width]);
   
-  d3.select("svg").remove();//TO REMOVE THE ALREADY SVG CONTENTS AND RELOAD ON EVERY UPDATE
+  //d3.select("svg").remove();//TO REMOVE THE ALREADY SVG CONTENTS AND RELOAD ON EVERY UPDATE
 
-  svg = d3.select("body").append("svg")
-      .attr("width", width + margin.right + margin.left)
-      .attr("height", newHeight + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  //svg = d3.select("body").append("svg")
+  //    .attr("width", width + margin.right + margin.left)
+  //    .attr("height", newHeight + margin.top + margin.bottom)
+  //    .append("g")
+  //    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
   // Compute the new tree layout.
   var nodes = tree.nodes(root).reverse(),
@@ -239,7 +244,6 @@ function update(source) {
 
 //wrap
 function wrap(text, width) {
-  console.log(text, 'text');
   text.each(function() {
     var text = d3.select(this),
         //Use positive lookahead so that the regular expression asserts that the special character exists, but does not actually match it
@@ -259,10 +263,7 @@ function wrap(text, width) {
         line.pop();
         tspan.text(line.join(" "));
         line = [word];
-        tmp={'x':x,'y':y,'dy':dy,'lineNumber':lineNumber,'lineHeight':lineHeight}
-        console.log(tmp)
         tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
-        console.log('length:'+tspan.text())
       }
     }
   });
@@ -307,9 +308,9 @@ function collapseLevel(d,n) {
             d.children = null;
         } else if (d.children) {
                //d.children.forEach(collapseLevel);
-                for (var i in d.children){
-                    collapseLevel(d.children[i],n)
-                };
+            for (var i in d.children){
+                collapseLevel(d.children[i],n)
+            };
             }
 }
 
@@ -319,23 +320,44 @@ function expandAll(){
 }
 
 function collapseAll(){
-    collapse(root);
+    collapseLevel(root,1);
     update(root);
 }
 
 function expandRL(){   
-    var myRow = d3.select("#myRow").property("value");
-    var myLevel = d3.select("#myLevel").property("value")-1;
-    expand(root.children[myRow]); 
+    var Row = d3.select("#myRow").property("value");
+    var Level= d3.select("#myLevel").property("value");
+    var inspectType=selectOption("inspectType");
+    inspect=root.children[inspectType];
+    count=inspect.children.length;
+    if ((count-1) <Row){
+        window.alert('Inspect Row not exist!')
+    };
+    expand(inspect.children[Row])
     update(root);
-    collapseLevel(root.children[myRow],myLevel);
+    collapseLevel(inspect.children[Row],Level);
     update(root);
+}
+
+function selectOption(key){
+    var e=document.getElementById(key);
+    var option = e.options[e.selectedIndex].value;
+    return option;
 }
 
 function search(){   
     //attach search box listener
-    var myKey=d3.select("#myKey").property("value");
- 	var paths = searchTree(root,myKey,[]);
+    var Row = d3.select("#myRow").property("value");
+    var Key=d3.select("#myKey").property("value");
+    
+    var inspectType=selectOption("inspectType");
+    inspect=root.children[inspectType];
+    count=inspect.children.length;
+    if ((count-1) <Row){
+        window.alert('Inspect Row not exist!')
+    };
+    
+    var paths = searchTree(inspect.children[Row],Key,[]);
  	if(typeof(paths) !== "undefined"){
  		openPaths(paths);
  	}
