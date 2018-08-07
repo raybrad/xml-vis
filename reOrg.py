@@ -9,7 +9,7 @@ from pprint import pprint
 def transform(args):
     tree = ET.parse(args.input_file)
     root = tree.getroot()
-    sections=['section_variable','section_model','section_pwcondition','section_geometry','section_layer','section_detector','section_inspect','section_advanced'] 
+    sections=['section_variable','section_model','section_pwcondition','section_geometry','section_layer','section_detector','section_inspect'] #section_advanced not related
     jobxml=dict()
     for s in sections:
         jobxml[s]=getSection(root,s)
