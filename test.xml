@@ -1,0 +1,426 @@
+<LMCplus script_version="E6.0">
+    <installation>/gpfs/software/tachyon_flex_E6.0/rc8/LSF/app/E6.0rc8/</installation>
+    <jobxml>
+        <item>
+            <name>descr</name>
+            <value>New job</value>
+        </item>
+        <item>
+            <name>jobtype</name>
+            <value>lmc+</value>
+        </item>
+        <item>
+            <name>options</name>
+            <value>patchboxgds=200:200,procsPerGB=0.04,refinecurvature=170,logginglevel=5000,check_job_schema=0,patch=0-299</value>
+        </item>
+    </jobxml>
+    <jobparamxml>
+        <item>
+            <name>binary</name>
+            <value/>
+        </item>
+        <item>
+            <name>childmodelroot</name>
+            <value>/gpfs/PEG/LMC/SHARED/ChildModel</value>
+        </item>
+        <item>
+            <name>gdscachedir</name>
+            <value>/gpfs/PEG/LMC/SHARED/CACHE</value>
+        </item>
+        <item>
+            <name>rthook</name>
+            <value/>
+        </item>
+    </jobparamxml>
+    <crmssubmitconfigxml>
+        <lsf>
+            <preproc>
+                <queue>benchmark</queue>
+                <applicationprofile>hostonly</applicationprofile>
+            </preproc>
+            <job>
+                <queue>benchmark</queue>
+                <slots>1</slots>
+                <applicationprofile>bench1</applicationprofile>
+            </job>
+        </lsf>
+    </crmssubmitconfigxml>
+    <section_variable>
+        <var name="Upsizefill">
+            <type>int</type>
+            <value>30</value>
+        </var>
+        <var name="SlotEndTipDistance">
+            <type>double</type>
+            <value>25.1</value>
+        </var>
+        <var name="GDS_ORIG">
+            <type>string</type>
+            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_jiaomodified_forLMCplus_SamsungL10M1_testing.oas</value>
+        </var>
+        <var name="GDS_M1_OPC">
+            <type>string</type>
+            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_opc_A_v2.dat</value>
+        </var>
+        <var name="GDS_J1_OPC">
+            <type>string</type>
+            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_opc_C.dat</value>
+        </var>
+        <var name="GDS_I1_OPC">
+            <type>string</type>
+            <value>/gpfs/PEG/LMC/SHARED/GDSIN/SN2_logic1_4david_opc_B.dat</value>
+        </var>
+        <global_setting>
+            <iw>2300:2300:2600:2600</iw>
+        </global_setting>
+        <external_file>
+            <file>/gpfs/software/tachyon_flex_E6.0/rc8/LSF/app/E6.0rc8/data/lmc/recipe_template.xml</file>
+            <file>/gpfs/software/tachyon_flex_E6.0/rc8/LSF/app/E6.0rc8/data/lmc/detector_template.xml</file>
+        </external_file>
+    </section_variable>
+    <section_model label="Model">
+        <model name="model_i1">
+            <file>/gpfs/PEG/LMC/SHARED/MODEL/MOD-3925/IMEC_10nm_M1_aei5_MPT_AEI/sp1</file>
+        </model>
+    </section_model>
+    <section_pwcondition label="Condition">
+        <pwcondition name="pwc_nc">
+            <cond>
+                <bias>0</bias>
+                <delta_defocus>0</delta_defocus>
+                <delta_dose>0</delta_dose>
+            </cond>
+        </pwcondition>
+        <pwcondition name="pwc1">
+            <cond>
+                <bias>0</bias>
+                <delta_defocus>0</delta_defocus>
+                <delta_dose>0.1</delta_dose>
+            </cond>
+        </pwcondition>
+    </section_pwcondition>
+    <section_geometry label="Geometry">
+        <geometry name="Geo_logic">
+            <inner_corner_distance>80</inner_corner_distance>
+            <outer_corner_distance>70</outer_corner_distance>
+            <jog_size>20</jog_size>
+            <jog_distance>80</jog_distance>
+            <line_end_max_width>80</line_end_max_width>
+            <line_end_min_length>60</line_end_min_length>
+            <line_end_distance>60</line_end_distance>
+            <line_end_jog_distance>10</line_end_jog_distance>
+            <slot_end_max_width>80</slot_end_max_width>
+            <slot_end_min_length>10</slot_end_min_length>
+            <slot_end_distance>60</slot_end_distance>
+        </geometry>
+    </section_geometry>
+    <section_layer label="Layer">
+        <layer_in name="L_M1_OPC">
+            <file>${GDS_M1_OPC}</file>
+            <layerdatatype>91:10</layerdatatype>
+        </layer_in>
+        <layer_in name="L_M1_FILL">
+            <file>${GDS_M1_OPC}</file>
+            <layerdatatype>91:4</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_M1_SRAF">
+            <file>${GDS_M1_OPC}</file>
+            <layerdatatype>91:12</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_M1_SRIF">
+            <file>${GDS_M1_OPC}</file>
+            <layerdatatype>91:13</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_operation name="L_M1_PostRET">
+            <operation>L_M1_OPC+L_M1_FILL+L_M1_SRAF-L_M1_SRIF</operation>
+        </layer_operation>
+        <layer_in name="L_M1_ADItarget">
+            <file>${GDS_M1_OPC}</file>
+            <layerdatatype>0:1</layerdatatype>
+        </layer_in>
+        <layer_in name="L_I1_ADItarget">
+            <file>${GDS_I1_OPC}</file>
+            <layerdatatype>0:2</layerdatatype>
+        </layer_in>
+        <layer_in name="L_I1_SRIF">
+            <file>${GDS_I1_OPC}</file>
+            <layerdatatype>92:13</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_I1_SRAF">
+            <file>${GDS_I1_OPC}</file>
+            <layerdatatype>92:12</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_I1_FILL">
+            <file>${GDS_I1_OPC}</file>
+            <layerdatatype>92:4</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_I1_OPC">
+            <file>${GDS_I1_OPC}</file>
+            <layerdatatype>92:10</layerdatatype>
+        </layer_in>
+        <layer_operation name="L_I1_PostRET">
+            <operation>L_I1_OPC+L_I1_FILL+L_I1_SRAF-L_I1_SRIF</operation>
+        </layer_operation>
+        <layer_in name="L_J1_OPC">
+            <file>${GDS_J1_OPC}</file>
+            <layerdatatype>93:10</layerdatatype>
+        </layer_in>
+        <layer_in name="L_J1_FILL">
+            <file>${GDS_J1_OPC}</file>
+            <layerdatatype>93:4</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_J1_SRAF">
+            <file>${GDS_J1_OPC}</file>
+            <layerdatatype>93:12</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_in name="L_J1_SRIF">
+            <file>${GDS_J1_OPC}</file>
+            <layerdatatype>93:13</layerdatatype>
+            <options>
+                <optional>true</optional>
+            </options>
+        </layer_in>
+        <layer_operation name="L_J1_PostRET">
+            <operation>L_J1_OPC+L_J1_FILL+L_J1_SRAF-L_J1_SRIF</operation>
+        </layer_operation>
+        <layer_in name="L_J1_ADItarget">
+            <file>${GDS_J1_OPC}</file>
+            <layerdatatype>0:3</layerdatatype>
+        </layer_in>
+        <layer_simulate name="CT_M1_ADI_NC">
+            <model>model_i1</model>
+            <layermap>
+                <Attenuator>L_M1_PostRET</Attenuator>
+                <aei_average>L_M1_ADItarget</aei_average>
+            </layermap>
+            <pwcondition>pwc_nc</pwcondition>
+            <options>
+                <mode>ADI</mode>
+                <refinecontour>0.1</refinecontour>
+                <refinecurvature>170</refinecurvature>
+            </options>
+        </layer_simulate>
+        <layer_simulate name="CT_I1_ADI_NC">
+            <model>model_i1</model>
+            <layermap>
+                <Attenuator>L_I1_PostRET</Attenuator>
+                <aei_average>L_I1_ADItarget</aei_average>
+            </layermap>
+            <pwcondition>pwc_nc</pwcondition>
+            <options>
+                <mode>ADI</mode>
+                <refinecontour>0.1</refinecontour>
+                <refinecurvature>170</refinecurvature>
+            </options>
+        </layer_simulate>
+        <layer_simulate name="CT_J1_ADI_NC">
+            <model>model_i1</model>
+            <layermap>
+                <Attenuator>L_J1_PostRET</Attenuator>
+                <aei_average>L_J1_ADItarget</aei_average>
+            </layermap>
+            <pwcondition>pwc_nc</pwcondition>
+            <options>
+                <mode>ADI</mode>
+                <refinecontour>0.1</refinecontour>
+                <refinecurvature>170</refinecurvature>
+            </options>
+        </layer_simulate>
+        <layer_operation name="L_Final_ADItarget">
+            <operation>SIZING(L_I1_ADItarget+SIZING(L_M1_ADItarget,${Upsizefill},"O"))*ROUNDING(L_J1_ADItarget,${SlotEndTipDistance})</operation>
+        </layer_operation>
+        <layer_operation name="CT_Combine_ADI_NC">
+            <operation>CT_M1_ADI_NC+CT_I1_ADI_NC+CT_J1_ADI_NC</operation>
+        </layer_operation>
+        <layer_operation name="CT_Combine_ADI_PW1">
+            <operation>CT_M1_ADI_PW1+CT_I1_ADI_PW1+CT_J1_ADI_PW1</operation>
+        </layer_operation>
+    </section_layer>
+    <section_detector label="Detector">
+        <detgroup name="Det_ADI_Logic_NC">
+            <det1 name="Error_NECK">
+                <type>_NECK</type>
+                <deflayer>3</deflayer>
+                <PositiveTolerance>0.01</PositiveTolerance>
+                <PositiveTolerance2>37.5</PositiveTolerance2>
+            </det1>
+            <det1 name="Error_BRIDGE">
+                <type>_BRIDGE</type>
+                <deflayer>9</deflayer>
+                <LE1>-1</LE1>
+                <LE2LE>-1</LE2LE>
+                <PositiveTolerance>0.01</PositiveTolerance>
+                <PositiveTolerance2>44</PositiveTolerance2>
+            </det1>
+        </detgroup>
+        <detgroup name="Det_ADI_Logic_PW1">
+            <det1 name="Error_NECK">
+                <type>_NECK</type>
+                <deflayer>3</deflayer>
+                <PositiveTolerance>1.01</PositiveTolerance>
+                <PositiveTolerance2>37.5</PositiveTolerance2>
+            </det1>
+            <det1 name="Error_BRIDGE">
+                <type>_BRIDGE</type>
+                <deflayer>9</deflayer>
+                <LE1>-1</LE1>
+                <LE2LE>-1</LE2LE>
+                <PositiveTolerance>1.01</PositiveTolerance>
+                <PositiveTolerance2>44</PositiveTolerance2>
+            </det1>
+        </detgroup>
+    </section_detector>
+    <section_inspect label="Inspection">
+        <inspect1 name="Inspect_Combine_ADI_Logic_NC">
+            <target1>L_Final_ADItarget</target1>
+            <contour1>CT_Combine_ADI_NC</contour1>
+            <geometry1>Geo_logic</geometry1>
+            <detgroup>Det_ADI_Logic_NC</detgroup>
+            <patternmatch>
+                <layer>L_Final_ADItarget</layer>
+                <range>150</range>
+            </patternmatch>
+            <contourcrop>
+                <layer>CT_Combine_ADI_NC</layer>
+                <range>150</range>
+                <deflayer>161</deflayer>
+            </contourcrop>
+        </inspect1>
+        <inspect1 name="Inspect_Combine_ADI_Logic_PW1">
+            <target1>L_Final_ADItarget</target1>
+            <contour1>CT_Combine_ADI_NC</contour1>
+            <geometry1>Geo_logic</geometry1>
+            <detgroup>Det_ADI_Logic_PW1</detgroup>
+            <patternmatch>
+                <layer>L_Final_ADItarget</layer>
+                <range>150</range>
+            </patternmatch>
+            <contourcrop>
+                <layer>CT_Combine_ADI_NC</layer>
+                <range>150</range>
+                <deflayer>161</deflayer>
+            </contourcrop>
+        </inspect1>
+        <inspect1 name="Inspect_Combine_ADI_Logic_PW2">
+            <target1>L_Final_ADItarget</target1>
+            <contour1>CT_M1_ADI_NC</contour1>
+            <geometry1>Geo_logic</geometry1>
+            <detgroup>Det_ADI_Logic_PW1</detgroup>
+            <patternmatch>
+                <layer>L_Final_ADItarget</layer>
+                <range>150</range>
+            </patternmatch>
+            <contourcrop>
+                <layer>CT_M1_ADI_NC</layer>
+                <range>150</range>
+                <deflayer>161</deflayer>
+            </contourcrop>
+        </inspect1>
+        <inspect2 name="Inspect2_Combine_ADI_Logic_PW2">
+            <target1>L_Final_ADItarget</target1>
+            <contour1>CT_M1_ADI_NC</contour1>
+            <geometry1>Geo_logic</geometry1>
+            <target2>L_Final_ADItarget</target2>
+            <contour2>CT_M1_ADI_NC</contour2>
+            <geometry2>Geo_logic</geometry2>
+            <detgroup>Det_ADI_Logic_PW2</detgroup>
+            <patternmatch>
+                <layer>L_Final_ADItarget</layer>
+                <range>150</range>
+            </patternmatch>
+            <contourcrop>
+                <layer>CT_M1_ADI_NC</layer>
+                <range>150</range>
+                <deflayer>161</deflayer>
+            </contourcrop>
+        </inspect2>
+    </section_inspect>
+    <section_advanced label="Advanced">
+        <recipe name="Recipe_A">
+          <recipe_template>NILS</recipe_template>
+          <input>
+            <layer name="dissected_target">target</layer>
+            <layer name="model_output">contour</layer>
+            <layer name="CA">IR</layer>
+          </input>
+          <param name="nils_param">
+            <CORRECTION_GRID>0.1</CORRECTION_GRID>
+            <queryRange>400</queryRange>
+            <merge>1</merge>
+            <checkOption>0</checkOption>
+            <checkstep>2</checkstep>
+            <polarity>2</polarity>
+            <layer_IR>1</layer_IR>
+            <targetLayer>dissected_target</targetLayer>
+            <modelOutput>model_output</modelOutput>
+            <caLayer>CA</caLayer>
+          </param>
+          <param name="nils_geo_param">
+            <line_end_max_width>120</line_end_max_width>
+            <line_end_min_length>40</line_end_min_length>
+            <line_end_distance>40</line_end_distance>
+            <slot_end_max_width>120</slot_end_max_width>
+            <slot_end_min_length>40</slot_end_min_length>
+            <slot_end_distance>40</slot_end_distance>
+            <jog_size>15</jog_size>
+            <jog_distance>30</jog_distance>
+            <inner_corner_distance>10</inner_corner_distance>
+            <outer_corner_distance>10</outer_corner_distance>
+          </param>
+          <detgroup name="detector_group_A">
+            <type>NILS_DET</type>
+            <det name="detector_A">
+              <setting>
+                <Orient>360</Orient>
+                <Polartiy>2</Polartiy>
+                <MINLW>0</MINLW>
+                <MAXLW>1000</MAXLW>
+                <CTWidth>0</CTWidth>
+                <Threshold1>1.5</Threshold1>
+                <Threshold2>-1</Threshold2>
+              </setting>
+              <general_property>
+                <deflayer>100</deflayer>
+              </general_property>
+              <custom_property>
+                <_nilsmode>0</_nilsmode>
+              </custom_property>
+            </det>
+          </detgroup>
+          <patternmatch>
+            <layer>target</layer>
+            <range>400</range>
+          </patternmatch>
+          <contourcrop>
+            <layer>contour</layer>
+            <range>400</range>
+            <deflayer>1000</deflayer>
+          </contourcrop>
+        </recipe>
+    </section_advanced>
+</LMCplus>
+
